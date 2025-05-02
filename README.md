@@ -1,34 +1,34 @@
 # Crystal Generator Web App
 
 **Goal:**  
-Browser‑based tool that procedurally generates guaranteed‑watertight, fantasy‑style “crystal” meshes, displays them with configurable PBR or hand‑drawn shaders, and exports a single ZIP (STL + parameters JSON) for direct 3D printing.
+Browser-based tool that procedurally generates guaranteed-watertight, fantasy-style “crystal” meshes, displays them with configurable PBR or hand-drawn shaders, and exports a single ZIP (STL + parameters JSON) for direct 3D printing.
 
 ---
 
 ## 1. Functional Requirements
 
 ### 1.1 Shape Generation
-- **Watertight meshes** only, slice‑ready for Cura/PrusaSlicer.  
-- **Geometry style:** Prism‑ and cluster‑style facets with organic, random “weathering.”  
+- **Watertight meshes** only, slice-ready for Cura/PrusaSlicer.  
+- **Geometry style:** Prism- and cluster-style facets with organic, random “weathering.”  
 - **User parameters:**
   - **Symmetry (0–100%)**
   - **Proportions** (length:width:thickness ratio)
   - **Weathering (0–100%)**
   - **Seed** (numeric for determinism)
-- **Mesh density:** App‑controlled (no manual density slider).
+- **Mesh density:** App-controlled (no manual density slider).
 
-### 1.2 Real‑time 3D Display
-- **Canvas:** Three.js via React‑Three‑Fiber  
-- **Controls:** Orbit + turntable auto‑rotate, pan/zoom, “Reset View”  
+### 1.2 Real-time 3D Display
+- **Canvas:** Three.js via React-Three-Fiber  
+- **Controls:** Orbit + turntable auto-rotate, pan/zoom, “Reset View”  
 - **Shaders (standalone GLSL):**
   - **PBR** (transmission/IOR/roughness/color)
-  - **Hand‑drawn** (outline/brush‑stroke)
-- **Lighting:** HDRI or three‑point configurable  
+  - **Hand-drawn** (outline/brush-stroke)
+- **Lighting:** HDRI or three-point configurable  
 - **Progress UI:** Full progress bar (0–100%) during up to ~5 s generation
 
 ### 1.3 Controls Panel
-- **Inputs:** sliders/text‑fields for all parameters  
-- **Shader selector:** PBR or Hand‑drawn  
+- **Inputs:** sliders/text-fields for all parameters  
+- **Shader selector:** PBR or Hand-drawn  
 - **Buttons:**
   - **Regenerate** (with current seed)
   - **Export** → downloads ZIP
@@ -43,24 +43,24 @@ Browser‑based tool that procedurally generates guaranteed‑watertight, fantas
 - **Contents:**
   1. `crystal.stl` (binary, via Three.js `STLExporter`)
   2. `crystal.json` (full parameter set)
-- **Auto‑archive hook:** `onAutoArchive(params: object)` → raw JSON only
+- **Auto-archive hook:** `onAutoArchive(params: object)` → raw JSON only
 
 ---
 
-## 2. Non‑Functional Requirements
-- **Client‑heavy WebGL**, degrades gracefully on CPU‑only machines.  
-- **Responsive desktop‑first UI**, with collapsible panel on narrow screens.  
-- **Precision:** resin‑printer quality; manifold geometry, no holes.  
+## 2. Non-Functional Requirements
+- **Client-heavy WebGL**, degrades gracefully on CPU-only machines.  
+- **Responsive desktop-first UI**, with collapsible panel on narrow screens.  
+- **Precision:** resin-printer quality; manifold geometry, no holes.  
 - **Extensibility:**
-  - Drop‑in GLSL shaders (`/public/shaders/*.glsl`)
-  - CSS‑variable theming (Gold‑Dust palette)
-  - Hooks for future “Save” and auto‑archive
+  - Drop-in GLSL shaders (`/public/shaders/*.glsl`)
+  - CSS-variable theming (Gold-Dust palette)
+  - Hooks for future “Save” and auto-archive
 
 ---
 
 ## 3. UI Theming & Color Scheme
 
-Use the provided **Gold‑Dust** OKLCH palette in CSS variables:
+Use the provided **Gold-Dust** OKLCH palette in CSS variables:
 
 ```css
 /* light mode */
@@ -101,17 +101,17 @@ Map these variables into your utility classes (Tailwind or CSS modules) for back
 | Shaders       | GLSL modules loaded dynamically    |
 | Export & ZIP  | Three.js `STLExporter` + JSZip     |
 | Download      | `file-saver` or native downloads   |
-| Styling       | Tailwind CSS w/ CSS‑vars           |
+| Styling       | Tailwind CSS w/ CSS-vars           |
 | Loader UI     | React progress bar component       |
 | Deployment    | Vercel                             |
 
 ---
 
-## 5. High‑Level Architecture
+## 5. High-Level Architecture
 
 1. **`<CrystalCanvas>`**  
    - Renders `geometry` + dynamic `material`  
-   - Orbit + auto‑rotate; applies lighting & postprocessing  
+   - Orbit + auto-rotate; applies lighting & postprocessing  
 
 2. **`meshGen.ts`**  
    ```ts
@@ -147,12 +147,12 @@ Map these variables into your utility classes (Tailwind or CSS modules) for back
    - Dynamically discovered for dropdown  
 
 6. **Styling & Theming**  
-   - Global CSS‑vars from palette  
+   - Global CSS-vars from palette  
    - Components styled via Tailwind utilities using those vars  
 
 ---
 
-## 6. Cloud‑Save & Auto‑Archive Hooks
+## 6. Cloud-Save & Auto-Archive Hooks
 
 - **`onUserSave(params: object): Promise<void>`**  
   Placeholder for a future “Save to Cloud” feature. Example stub:

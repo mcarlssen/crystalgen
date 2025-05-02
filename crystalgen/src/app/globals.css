@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+/* light mode */
+:root {
+  --bg:        oklch(100% 0   83);
+  --surface:   oklch(98%  0.02 83);
+  --text:      oklch(12%  0.02 83);
+  --accent:    oklch(61.8% 0.145 83);
+  --on-accent: oklch(100% 0   0);
+  
+  /* Additional shades */
+  --surface-2: oklch(95% 0.03 83);
+  --surface-3: oklch(92% 0.04 83);
+  --text-2:    oklch(24% 0.03 83);
+  --text-3:    oklch(36% 0.04 83);
+}
+
+/* dark mode */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:        oklch(24%  0   83);
+    --surface:   oklch(28%  0.02 83);
+    --text:      oklch(100% 0   0);
+    --accent:    oklch(61.8% 0.145 83);
+    --on-accent: oklch(0%   0   0);
+    
+    /* Additional shades */
+    --surface-2: oklch(32% 0.03 83);
+    --surface-3: oklch(36% 0.04 83);
+    --text-2:    oklch(88% 0.03 0);
+    --text-3:    oklch(76% 0.04 0);
+  }
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  min-height: 100vh;
+}
+
+/* Button and control styles */
+button, 
+.slider, 
+.control-panel {
+  background-color: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--surface-2);
+  transition: all 0.2s ease;
+}
+
+button:hover,
+.slider:hover {
+  background-color: var(--surface-2);
+}
+
+.accent-button {
+  background-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.accent-button:hover {
+  filter: brightness(1.1);
+}
+
+/* Progress bar */
+.progress-bar {
+  background-color: var(--surface-2);
+}
+
+.progress-bar-fill {
+  background-color: var(--accent);
+}
