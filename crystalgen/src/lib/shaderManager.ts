@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import { ShaderType } from '../store/crystalStore';
 
 interface ShaderMaterialOptions {
   color?: THREE.Color;
@@ -17,7 +16,7 @@ interface ShaderMaterialOptions {
 export interface ShaderManager {
   getPBRMaterial: (options?: ShaderMaterialOptions) => Promise<THREE.ShaderMaterial>;
   getHandDrawnMaterial: (options?: ShaderMaterialOptions) => Promise<THREE.ShaderMaterial>;
-  getMaterial: (type: ShaderType, options?: ShaderMaterialOptions) => Promise<THREE.ShaderMaterial>;
+  getMaterial: (type: string, options?: ShaderMaterialOptions) => Promise<THREE.ShaderMaterial>;
   dispose: () => void;
 }
 
@@ -86,6 +85,36 @@ function createProceduralEnvMap(): THREE.CubeTexture {
   const cubeTexture = new THREE.CubeTexture(textures);
   cubeTexture.needsUpdate = true;
   return cubeTexture;
+}
+
+const shaderFiles: { [key: string]: { vertex: string; fragment: string } } = {
+  'pbr': {
+    vertex: '/shaders/pbr.vertex.glsl',
+    fragment: '/shaders/pbr.fragment.glsl',
+  },
+  'hand-drawn': {
+    vertex: '/shaders/hand-drawn.vertex.glsl',
+    fragment: '/shaders/hand-drawn.fragment.glsl',
+  },
+  'glow-crystal': {
+    vertex: '/shaders/pbr.vertex.glsl', // reuse for now
+    fragment: '/shaders/glow-crystal.fragment.glsl',
+  },
+  'translucent-gem': {
+    vertex: '/shaders/pbr.vertex.glsl', // reuse for now
+    fragment: '/shaders/translucent-gem.fragment.glsl',
+  },
+  // Add more shaders here
+};
+
+async function loadShaderPair(name: string): Promise<{ vertex: string, fragment: string }> {
+  const files = shaderFiles[name];
+  if (!files) throw new Error(`Shader ${name} not found.`);
+  const [vertex, fragment] = await Promise.all([
+    fetch(files.vertex).then(r => r.text()),
+    fetch(files.fragment).then(r => r.text()),
+  ]);
+  return { vertex, fragment };
 }
 
 export function createShaderManager(): ShaderManager {
@@ -204,12 +233,51 @@ export function createShaderManager(): ShaderManager {
     return handDrawnMaterial;
   }
   
-  async function getMaterial(type: ShaderType, options: ShaderMaterialOptions = {}): Promise<THREE.ShaderMaterial> {
-    if (type === 'pbr') {
-      return getPBRMaterial(options);
-    } else {
-      return getHandDrawnMaterial(options);
+  async function getMaterial(type: string, options: ShaderMaterialOptions = {}): Promise<THREE.ShaderMaterial> {
+    // Dynamically load shader by name
+    const { vertex, fragment } = await loadShaderPair(type);
+    await initTextures();
+    const uniforms: any = {
+      color: { value: new THREE.Color(0x80a0ff) },
+      roughness: { value: 0.2 },
+      metalness: { value: 0.0 },
+      transmission: { value: 0.9 },
+      ior: { value: 1.5 },
+      opacity: { value: 1.0 },
+      envMap: { value: envMap },
+      noiseTexture: { value: noiseTexture },
+      outlineThickness: { value: 0.3 },
+      strokeDensity: { value: 5.0 },
+      time: { value: 0.0 },
+    };
+    // Override with options
+    if (options.color) uniforms.color.value = options.color;
+    if (options.roughness !== undefined) uniforms.roughness.value = options.roughness;
+    if (options.metalness !== undefined) uniforms.metalness.value = options.metalness;
+    if (options.transmission !== undefined) uniforms.transmission.value = options.transmission;
+    if (options.ior !== undefined) uniforms.ior.value = options.ior;
+    if (options.opacity !== undefined) uniforms.opacity.value = options.opacity;
+    if (options.envMap) uniforms.envMap.value = options.envMap;
+    if (options.noiseTexture) uniforms.noiseTexture.value = options.noiseTexture;
+    if (options.outlineThickness !== undefined) uniforms.outlineThickness.value = options.outlineThickness;
+    if (options.strokeDensity !== undefined) uniforms.strokeDensity.value = options.strokeDensity;
+    // Animate time for hand-drawn
+    if (type === 'hand-drawn') {
+      const animate = () => {
+        if (material) {
+          material.uniforms.time.value += 0.01;
+          requestAnimationFrame(animate);
+        }
+      };
+      requestAnimationFrame(animate);
     }
+    const material = new THREE.ShaderMaterial({
+      vertexShader: vertex,
+      fragmentShader: fragment,
+      uniforms,
+      transparent: true,
+    });
+    return material;
   }
   
   function dispose(): void {

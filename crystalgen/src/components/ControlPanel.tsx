@@ -94,21 +94,22 @@ function ProportionsInput() {
   );
 }
 
-// Shader selector dropdown
+// Shader selector dropdown (dynamic)
 function ShaderSelector() {
-  const shader = useCrystalStore((state) => state.shader);
+  const selectedShader = useCrystalStore((state) => state.selectedShader);
+  const availableShaders = useCrystalStore((state) => state.availableShaders);
   const setShader = useCrystalStore((state) => state.setShader);
-  
   return (
     <div className="mb-4">
-      <label className="text-sm block mb-1">Shader Style</label>
+      <label className="text-sm block mb-1">Shader</label>
       <select
-        value={shader}
-        onChange={(e) => setShader(e.target.value as ShaderType)}
+        value={selectedShader}
+        onChange={(e) => setShader(e.target.value)}
         className="w-full bg-surface p-2 rounded-md text-sm"
       >
-        <option value="pbr">PBR (Physically Based)</option>
-        <option value="hand-drawn">Hand-Drawn</option>
+        {availableShaders.map((shader) => (
+          <option key={shader} value={shader}>{shader.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+        ))}
       </select>
     </div>
   );
@@ -144,6 +145,21 @@ function SeedInput() {
   );
 }
 
+// Debug info display
+function DebugInfoPanel() {
+  const debugInfo = useCrystalStore((state) => state.debugInfo);
+  if (!debugInfo) return null;
+  return (
+    <div className="mb-4 p-2 bg-surface-2 rounded-md text-xs">
+      <div className="font-semibold mb-1">Debug Info</div>
+      <div>Base Type: <span className="font-mono">{debugInfo.baseType}</span></div>
+      <div>Seed: <span className="font-mono">{debugInfo.seed}</span></div>
+      <div>Vertex Count: <span className="font-mono">{debugInfo.vertexCount}</span></div>
+      <div>Face Count: <span className="font-mono">{debugInfo.faceCount}</span></div>
+    </div>
+  );
+}
+
 // Main control panel component
 export default function ControlPanel() {
   const [isOpen, setIsOpen] = useState(true);
@@ -166,6 +182,7 @@ export default function ControlPanel() {
       {isOpen && (
         <div className="p-4 h-full overflow-y-auto">
           <h2 className="text-xl font-semibold mb-4">Crystal Generator</h2>
+          <DebugInfoPanel />
           
           <Slider
             label="Symmetry"
@@ -179,12 +196,20 @@ export default function ControlPanel() {
           <ProportionsInput />
           
           <Slider
-            label="Weathering"
-            value={params.weathering}
+            label="Weathering Size"
+            value={params.weatheringSize}
             min={0}
             max={100}
             step={1}
-            onChange={(value) => setParams({ weathering: value })}
+            onChange={(value) => setParams({ weatheringSize: value })}
+          />
+          <Slider
+            label="Weathering Strength"
+            value={params.weatheringStrength}
+            min={0}
+            max={100}
+            step={1}
+            onChange={(value) => setParams({ weatheringStrength: value })}
           />
           
           <SeedInput />

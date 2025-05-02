@@ -32,7 +32,7 @@ function ProgressOverlay() {
 // Crystal mesh component
 function Crystal() {
   const params = useCrystalStore((state) => state.params);
-  const shader = useCrystalStore((state) => state.shader);
+  const selectedShader = useCrystalStore((state) => state.selectedShader);
   const setProgress = useCrystalStore((state) => state.setProgress);
   const setIsGenerating = useCrystalStore((state) => state.setIsGenerating);
   
@@ -77,17 +77,22 @@ function Crystal() {
     generate();
   }, [params, setProgress, setIsGenerating]);
   
-  // Update material when shader type changes
+  // Update material when shader selection changes
   useEffect(() => {
     if (!shaderManager || !geometry) return;
     
     const updateMaterial = async () => {
-      const newMaterial = await shaderManager.getMaterial(shader);
+      const newMaterial = await shaderManager.getMaterial(selectedShader);
+      // Enable backface rendering
+      newMaterial.side = THREE.DoubleSide;
+      // Ensure proper depth testing
+      newMaterial.depthWrite = true;
+      newMaterial.depthTest = true;
       setMaterial(newMaterial);
     };
     
     updateMaterial();
-  }, [shader, shaderManager, geometry]);
+  }, [selectedShader, shaderManager, geometry]);
   
   // Rotate the crystal
   useFrame(() => {
@@ -143,8 +148,9 @@ export default function CrystalCanvas() {
   return (
     <div className="relative w-full h-full">
       <Canvas camera={{ position: [0, 0, 5], fov: 50 }}>
-        <ambientLight intensity={0.5} />
-        <pointLight position={[10, 10, 10]} />
+        <ambientLight intensity={0.8} />
+        <hemisphereLight color={0xffffff} groundColor={0x888888} intensity={0.8} position={[0, 10, 0]} />
+        <directionalLight intensity={0.4} position={[5, 10, 7]} castShadow={false} />
         <Crystal />
         <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
       </Canvas>
